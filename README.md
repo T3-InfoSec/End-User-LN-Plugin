@@ -1,2 +1,2 @@
-# End-User-LN-Plugin
-Flutter plugin for end-user Lightning Network application built-in wallet
+# End-User-TLP-Connection-Plugin
+Flutter plugin for end-user to connect to TLP Server.
