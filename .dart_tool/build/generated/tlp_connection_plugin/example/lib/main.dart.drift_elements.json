@@ -1,0 +1,1 @@
+{"valid_import":true,"imports":[{"uri":"package:flutter/material.dart","transitive":false},{"uri":"package:flutter_local_notifications/flutter_local_notifications.dart","transitive":false},{"uri":"package:tlp_connection_plugin/tlp_connection_plugin.dart","transitive":false}],"elements":[]}

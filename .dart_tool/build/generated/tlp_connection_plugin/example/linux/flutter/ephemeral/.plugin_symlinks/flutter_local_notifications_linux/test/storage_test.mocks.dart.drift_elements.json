@@ -1,0 +1,1 @@
+{"valid_import":true,"imports":[{"uri":"package:flutter_local_notifications_linux/src/file_system.dart","transitive":false},{"uri":"package:flutter_local_notifications_linux/src/platform_info.dart","transitive":false},{"uri":"package:mockito/mockito.dart","transitive":false}],"elements":[]}

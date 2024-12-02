@@ -8,12 +8,18 @@ environment:
   flutter: ">=1.17.0"
 
 dependencies:
+  crypto: ^3.0.6
   cryptography: ^2.7.0
+  device_info_plus: ^11.1.1
+  drift: ^2.22.1
+  drift_flutter: ^0.2.2
   encrypt: ^5.0.3
   flutter:
     sdk: flutter
   flutter_local_notifications: ^18.0.1
+  intl: ^0.20.1
   ninja_prime: ^2.0.0
+  pointycastle: ^3.9.1
   prime_numbers: ^0.0.4
   web_socket_client: ^0.1.5
 
@@ -21,6 +27,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  drift_dev: ^2.22.0
+  build_runner: ^2.4.13
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -1,0 +1,1 @@
+{"valid_import":true,"imports":[{"uri":"package:flutter/services.dart","transitive":false},{"uri":"package:flutter/widgets.dart","transitive":false},{"uri":"package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart","transitive":false}],"elements":[]}

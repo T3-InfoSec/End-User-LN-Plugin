@@ -1,0 +1,1 @@
+{"valid_import":true,"imports":[{"uri":"package:ffi/ffi.dart","transitive":false},{"uri":"package:flutter_test/flutter_test.dart","transitive":false},{"uri":"package:path_provider_linux/src/get_application_id_real.dart","transitive":false}],"elements":[]}

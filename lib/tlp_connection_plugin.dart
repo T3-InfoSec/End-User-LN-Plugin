@@ -1,9 +1,12 @@
 library tlp_connection_plugin;
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' as mat;
+import 'package:tlp_connection_plugin/data/db/db.dart';
+import 'package:tlp_connection_plugin/helpers/fingerprint.dart';
 import 'package:tlp_connection_plugin/ui/tlp_conn_bottom_sheet.dart';
 import 'package:web_socket_client/web_socket_client.dart';
 
@@ -23,7 +26,9 @@ sealed class Connector {
   /// Sends a message to the TLP Connection SDK.
   /// [message] is the message to send.
   /// [messageType] specifies the type of the message.
-  void sendMessage(String message, MessageType messageType);
+  void sendMessage(MessageType messageType, {required BigInt product, required BigInt t, required BigInt baseg});
+
+  void sendComplain(String mkey);
 
   /// Retrieves the current connection status as a one-time value.
   ConnectionStatus get currentStatus;
@@ -48,7 +53,7 @@ class TlpConnectionPlugin implements Connector {
   ConnectionStatus get currentStatus => _currentStatus;
 
   @override
-  void connect(String connectionString, ConnectionType connectionType) {
+  void connect(String connectionString, ConnectionType connectionType) async {
     if (connectionType != ConnectionType.websocket) {
       _log("Currently, only WebSocket connections are supported.");
       _updateConnectionStatus(ConnectionStatus.disconnected);
@@ -92,19 +97,34 @@ class TlpConnectionPlugin implements Connector {
   }
 
   @override
-  void sendMessage(dynamic message, MessageType messageType) {
+  void sendMessage(MessageType messageType,
+      {required BigInt product, required BigInt t, required BigInt baseg, bool annonymous = false}) async {
     if (_currentStatus != ConnectionStatus.connected) {
       _log("Cannot send message: Not connected.");
       return;
     }
     try {
-      _socket.send("x1Zf0o115HelloTestKey");
-      _socket.send(message);
-      _log("Message sent: $message");
+      final deviceFn = await DeviceFingerprint.getFingerprint(isAnnon: annonymous);
+
+      _socket.send("{fn:$deviceFn}");
+      final msg = '{"fn": "$deviceFn","product": "$product","t": "$t","baseg": "$baseg"}';
+
+      _socket.send(msg);
+      // _log("Message sent: $msg");
       _listenForMessages();
     } catch (e) {
       _log("Error sending message: $e");
     }
+  }
+
+  @override
+  void sendComplain(String mkey) async {
+    final deviceFn = await DeviceFingerprint.getFingerprint(isAnnon: false);
+
+    _socket.send("{fn:$deviceFn}");
+    _socket.send('{"complain": "$mkey"}');
+    // _log("Message sent: $msg");
+    _listenForMessages();
   }
 
   void _handleConnectionState(ConnectionState state) {
@@ -131,18 +151,32 @@ class TlpConnectionPlugin implements Connector {
     }
 
     _socket.messages.listen(
-      (message) {
+      (message) async {
         if (message.toString().contains('Hello from server!')) {
           return;
         } else {
-          BigInt? answer = BigInt.tryParse(message);
-          if (answer != null) {
-            _receivedMessageController.add(answer.toInt());
-            // call notification
-          }
-          _receivedMessageController.add(message);
+          if (message.toString().contains('{"mkey": ')) {
+            final data = jsonDecode(message.toString());
+            final mkey = data['mkey'];
+            final mData = data['mdata'];
+            BigInt? answer = BigInt.tryParse(mData);
+            if (answer != null) {
+              _receivedMessageController.add(answer.toInt());
+              // call notification
+            }
+            _receivedMessageController.add(answer.toString());
 
-          _log("Message received: $message");
+            _log("Message received: $answer for $mkey");
+
+            await database.into(database.tlpDatas).insert(TlpDatasCompanion.insert(
+                  mData: mData,
+                  mkey: mkey,
+                ));
+
+            // insert into history table (if not already exists)
+          } else {
+            _receivedMessageController.add(message.toString());
+          }
         }
       },
       onError: (e) {
@@ -174,7 +208,7 @@ class TlpConnectionPlugin implements Connector {
   /// [connectionString] is the connection string to connect to
   /// [connectionType] is the type of connection to use
   /// [onConnectionStatusChanged] is a callback function that is called when the connection status changes
-  start(mat.BuildContext context, String connectionString, ConnectionType connectionType,
+  start(mat.BuildContext context, String connectionString, ConnectionType connectionType, int? t,
       void Function(ConnectionStatus) onConnectionStatusChanged) async {
     if (connectionType != ConnectionType.websocket) {
       _log("Currently, only WebSocket connections are supported.");
@@ -188,7 +222,7 @@ class TlpConnectionPlugin implements Connector {
       enableDrag: true,
       showDragHandle: true,
       isScrollControlled: true,
-      builder: (context) => TlpBottomSheet(tlpConnectionPlugin: this),
+      builder: (context) => TlpBottomSheet(tlpConnectionPlugin: this, t: t),
     );
   }
 }

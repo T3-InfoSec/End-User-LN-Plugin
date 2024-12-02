@@ -86,6 +86,9 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  int t = 3000;
+  int stepValue = 3000;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,30 +96,75 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: Center(
-        child: StreamBuilder<ConnectionStatus>(
-            stream: _tlpConnectionPlugin.connectionStatusStream,
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return Text('Error: ${snapshot.error}');
-              }
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const CircularProgressIndicator();
-              }
-              final status = snapshot.data;
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text("HELLO WORLD ${status?.name.toUpperCase()}"),
-                ],
-              );
-            }),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            const SizedBox(height: 108),
+            StreamBuilder<ConnectionStatus>(
+                stream: _tlpConnectionPlugin.connectionStatusStream,
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  }
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  }
+                  final status = snapshot.data;
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text("HELLO WORLD ${status?.name.toUpperCase()}"),
+                    ],
+                  );
+                }),
+            const SizedBox(height: 108),
+            const Text("T:", style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      // Safeguard against values below the minimum allowed (1000)
+                      if (stepValue > 100) {
+                        stepValue = stepValue ~/ 10; // Perform integer division
+                        t = stepValue;
+                      }
+                    });
+                  },
+                  child: const Icon(Icons.remove),
+                ),
+                Text(
+                  stepValue.toString(),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      // Safeguard against exceeding a reasonable maximum value
+                      const int maxAllowed = 10000000;
+                      if (stepValue <= maxAllowed) {
+                        // Prevent overflow
+                        stepValue *= 10;
+                        t = stepValue;
+                      }
+                    });
+                  },
+                  child: const Icon(Icons.add),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _tlpConnectionPlugin.start(
           context,
           'localhost:8080',
           ConnectionType.websocket,
+          t,
           (status) {},
         ),
         tooltip: 'TLP TEST',

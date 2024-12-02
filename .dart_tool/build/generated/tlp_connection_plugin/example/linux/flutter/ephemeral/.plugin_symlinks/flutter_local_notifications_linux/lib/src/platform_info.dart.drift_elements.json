@@ -1,0 +1,1 @@
+{"valid_import":true,"imports":[{"uri":"package:path/path.dart","transitive":false},{"uri":"package:xdg_directories/xdg_directories.dart","transitive":false},{"uri":"asset:tlp_connection_plugin/example/linux/flutter/ephemeral/.plugin_symlinks/flutter_local_notifications_linux/lib/src/posix.dart","transitive":false}],"elements":[]}
